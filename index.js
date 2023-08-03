@@ -1,4 +1,5 @@
 import express from 'express'
+import mongoose from 'mongoose'
 
 const categories = ['Food', 'Gaming', 'Coding', 'Other']
 
@@ -7,6 +8,18 @@ const entries = [
   { category: "Coding", content: "Coding is fun!" },
   { category: "Gaming", content: "Skyrim is for the Nords!" }
 ]
+
+mongoose.connect('mongodb+srv://joshuadavis1990:7Czg2HSq0IDldvJU@cluster0.djjulcw.mongodb.net/journal?retryWrites=true&w=majority')
+  .then(m => console.log(m.connection.readyState == 1 ? 'Mongoose connected!' : 'Mongoose failed to connect.'))
+  .catch(err => console.log(err))
+
+const entriesSchema = new mongoose.Schema({
+  category: { type: String, required: true },
+  content: { type: String, required: true }
+})
+
+const EntryModel = mongoose.model('Entry', entriesSchema)
+
 
 const app = express()
 const port = 4001
@@ -28,14 +41,14 @@ app.get('/entries/:id', (req, res) => {
   }
 })
 
-app.post('/entries', (req, res) => {
-  // 1. Retrieve the data from the request (req) and 2. Parse it
-  console.log(req.body)
-  // TODO: Validate it
-  // 4. Push the new entry to the entries array
-  entries.push(req.body)
-  // 5. Send the new entity with 201 status
-  res.status(201).send(req.body)
+app.post('/entries', async (req, res) => {
+  try {
+    const insertedEntry = await EntryModel.create(req.body)
+    res.status(201).send(insertedEntry)
+  }
+  catch (err) {
+    res.status(500).send({ error: err.message })
+  }
 })
 
 app.listen(port)
