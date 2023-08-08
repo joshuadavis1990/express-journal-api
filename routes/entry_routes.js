@@ -3,11 +3,11 @@ import { EntryModel, CategoryModel } from '../db.js'
 
 const router = Router()
 
-router.get("/", async (req, res) => res.send(await EntryModel.find()))
+router.get("/", async (req, res) => res.send(await EntryModel.find().populate({ path: 'category', select: '-_id name' })))
 
 router.get("/:id", async (req, res) => {
   try {
-    const entry = await EntryModel.findById(req.params.id)
+    const entry = await EntryModel.findById(req.params.id).populate({ path: 'category', select: '-_id name' })
     if (entry) {
       res.send(entry)
     } else {
